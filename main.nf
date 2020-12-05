@@ -7,9 +7,6 @@ params.transcriptome = "$baseDir/data/ggal/transcriptome.fa"
 params.multiqc = "$baseDir/multiqc"
 
 
-println "reads: $params.reads"
-methods = ['prot','dna', 'rna']
-
 process foo {
   input:
   val x from methods
