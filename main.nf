@@ -1,27 +1,32 @@
 #!/usr/bin/env nextflow
+log.info "~~~ HowardJC's Pipeline ~~"
+log.info "* reads:              ${params.reads}"
+log.info "* outdir:             ${params.outdir}"
+log.info "* Launch dir:         ${workflow.launchDir}"
+log.info "* Work dir:           ${workflow.workDir}"
+log.info "* Profile             ${workflow.profile ?: '-'}"
+log.info "* Workflow container  ${workflow.container ?: '-'}"
+log.info "* container engine    ${workflow.containerEngine?:'-'}"
+log.info "* Nextflow run name   ${workflow.runName}"
 
-methods = ['prot','dna','rna']
+Channel.fromPath("$params.reads").set{queryFile_ch}
 
-params.reads = "$baseDir/data/ggal/*_{1,2}.fq"
-params.transcriptome = "$baseDir/data/ggal/transcriptome.fa"
-params.multiqc = "$baseDir/multiqc"
+process fastqc{
 
 
-process foo {
-  input:
-  val x from methods
+    input:
+    path(queryFile) from queryFile_ch
 
-  output:
-  val x into receiver
+    output: 
+    path("fastqc_${queryFile}")  into fastqc_ch
 
-  """
-  echo $x > file
-  """
+    script:
+    """
+    mkdir fastqc_${queryFile}
+    fastqc -o fastqc_${queryFile} -f fastq ${queryFile}
+    """
 
 }
-
-receiver.view { "Received: $it" }
-
 
 
 
