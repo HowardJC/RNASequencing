@@ -9,27 +9,28 @@ log.info "* Workflow container  ${workflow.container ?: '-'}"
 log.info "* container engine    ${workflow.containerEngine?:'-'}"
 log.info "* Nextflow run name   ${workflow.runName}"
 
-Channel.fromFilePairs("$params.reads",flat:true).into{reads_ch}
-println(reads_ch.view())
-println("---------------------------------")
-
-
-// println("------------")
-// println(Channel.fromPath("$params.reads").view())
+Channel.fromFilePairs("$params.reads",flat:true).set{queryFile_ch}
 
 
 process cutadapt{
+
     input:
-    tuple val(sample_id), file(sample_files), file(CLown) from reads_ch 
-    path(queryFile) fromFilePairs(queryFile_ch)
+    tuple val(sample_id), file(sample_file1), file(sample_file2) from queryFile_ch 
+
 
     output:
-    path("${queryFile}") into queryFile_ch1
+    set path("${sample_file1}"), path("${sample_file2}") into queryFile_ch1
 
     script:
+    // """
+    // cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT ${sample_file1} ${sample_file2} | sponge | gzip 
+    // """
     """
-    cutadapt -a AGATCGGAAGAGC ${queryFile} | gzip 
+    cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT -o Clowned.fastq.gz -p Card.fastq.gz -z  ${sample_file1} ${sample_file2} 
+    mv Clowned.fastq.gz ${sample_file1}
+    mv Card.fastq.gz ${sample_file2}
     """
+
 }
 
 
@@ -37,7 +38,7 @@ process fastqc{
 
 
     input:
-    path(queryFile) from queryFile_ch1
+    path(queryFile) from queryFile_ch1.flatten()
 
     output: 
     path("fastqc_${queryFile}")  into fastqc_ch
@@ -53,7 +54,7 @@ process fastqc{
 process multimc{
     publishDir "${params.outdir}", mode: 'copy'
     input:
-    path(Mea) from fastqc_ch.collect()
+    path('Mea') from fastqc_ch.collect()
 
     output:
     path('multiqc_report.html')
