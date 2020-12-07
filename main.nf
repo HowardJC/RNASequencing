@@ -27,8 +27,9 @@ process cutadapt{
     // """
     """
     cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT -o Clowned.fastq.gz -p Card.fastq.gz -z  ${sample_file1} ${sample_file2} 
-    mv Clowned.fastq.gz ${sample_file1}
-    mv Card.fastq.gz ${sample_file2}
+    cutadapt -q 20,20 -o Clowned.fastq.gz ${sample_file1} 
+    cutadapt -q 20,20 -o Card.fastq.gz ${sample_file2}
+
     """
 
 }
