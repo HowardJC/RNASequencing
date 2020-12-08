@@ -10,7 +10,7 @@ log.info "* container engine    ${workflow.containerEngine?:'-'}"
 log.info "* Nextflow run name   ${workflow.runName}"
 
 Channel.fromFilePairs("$params.reads",flat:true).set{queryFile_ch}
-
+Channel.fromPath("$params.transcriptome").set{Transcriptset}
 
 process cutadapt{
 
@@ -19,7 +19,7 @@ process cutadapt{
 
 
     output:
-    set path("${sample_file1}"), path("${sample_file2}") into queryFile_ch1
+    set path("${sample_file1}"), path("${sample_file2}") into (queryFile_ch1,queryFile_ch2)
 
     script:
     // """
@@ -67,6 +67,42 @@ process multimc{
     
 
 }
+process Annotation{
+    errorStrategy 'retry'
+    input:
+    path(Query) from Transcriptset
+
+    output:
+    path("*.ht2") into Annotations
+
+    shell:
+    """
+    gunzip sdfsdfsdf || echo "Does not exist"
+    gunzip ${Query}/*.fna.gz || echo "Does not exist"
+    gunzip ${Query}/*.gff.gz || echo "Does not exist"
+    hisat2-build ${Query}/*.fna gunzip ${Query}/*.gff
+    """
+
+
+}
+
+
+// process ReadQualityStatistics{
+//     publishDir "${params.outdir}", mode:'copy'
+//     input:
+//     path(FlaggerQuery) from queryFile_ch2.flatten()
+
+//     output:
+//     path("Statistics_${FlaggerQuery}")
+
+//     script:
+//     """
+    
+//     samtools flagstat ${FlaggerQuery} > Statistics_${FlaggerQuery}
+//     """
+
+
+// }
 
 
 
