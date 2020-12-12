@@ -114,18 +114,16 @@ process Alignment{
     '''
     #!/bin/sh
     echo !{Query}
-    echo ----------------
+
     echo !{Runs1}
-    echo ----------------
+
 
     Id=$(basename !{Runs1} | cut -f 1 -d "_")
     Basename=$(sudo basename !{Query}/*.gff.1.* .1.ht2)
-    echo $Basename
-    echo !{Query}/$Basename
+
     mkdir Bams
     HISAT2_INDEXES=!{Query}
     export HISAT2_INDEXES=!{Query}
-    #hisat2 -x $Basename -1 !{Runs1} -2 !{Runs2} -S Sams/${Id}.sam
     hisat2 -x $Basename -1 !{Runs1} -2 !{Runs2} | samtools view -bS -  > Bams/${Id}.bam
 
     '''
